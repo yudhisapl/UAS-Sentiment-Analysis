@@ -1,22 +1,35 @@
-# from fastapi import FastAPI, Header, HTTPException, Depends
-# from library_management_api.modules.routes.books import router as books_router
-# from library_management_api.modules.routes.loans import router as loans_router
-# from library_management_api.modules.routes.reports import router as reports_router
+# main.py
 
-# app = FastAPI(title="Sentiment Analysis")
+from fastapi import FastAPI
 
-# def get_auth(
-#     x_role: str = Header(..., alias="X-Role"),
-#     x_user_id: str | None = Header(None, alias="X-User-Id"),
-# ):
-#     if x_role not in {"admin", "student"}:
-#         raise HTTPException(403, "X-Role harus 'admin' atau 'student'")
-#     return {"role": x_role, "user_id": x_user_id}
+from database import Base, engine
+from modules.items.schema.models import MentalHealthResponse  # registrasi metadata tabel
+from modules.items.routes import (
+    readItem,
+    createItem,
+    updateItem,
+    deleteItem,
+)
 
-# @app.get("/", include_in_schema=False)
-# def root():
-#     return {"ok": True}
+# --- Inisialisasi database (buat tabel kalau belum ada) ---
+Base.metadata.create_all(bind=engine)
 
-# app.include_router(books_router, dependencies=[Depends(get_auth)])
-# app.include_router(loans_router, dependencies=[Depends(get_auth)])
-# app.include_router(reports_router, dependencies=[Depends(get_auth)])
+# --- Inisialisasi FastAPI app (WAJIB bernama "app") ---
+app = FastAPI(
+    title="Mental Health Sentiment API",
+    description="API untuk mengakses tabel mental_health_responses (statement + status).",
+    version="1.0.0",
+)
+
+
+# --- Registrasi router ---
+app.include_router(readItem.router)
+app.include_router(createItem.router)
+app.include_router(updateItem.router)
+app.include_router(deleteItem.router)
+
+
+# --- Root endpoint sederhana ---
+@app.get("/")
+def root():
+    return {"message": "Mental Health Sentiment API is running"}
