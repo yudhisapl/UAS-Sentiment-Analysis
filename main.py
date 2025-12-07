@@ -11,25 +11,30 @@ from modules.items.routes import (
     deleteItem,
 )
 
-# --- Inisialisasi database (buat tabel kalau belum ada) ---
+# === Tambahkan import ML router di sini ===
+from modules.items.ml.routes import router as ml_router
+
+
+# --- Inisialisasi database ---
 Base.metadata.create_all(bind=engine)
 
-# --- Inisialisasi FastAPI app (WAJIB bernama "app") ---
+# --- FastAPI app ---
 app = FastAPI(
     title="Mental Health Sentiment API",
     description="API untuk mengakses tabel mental_health_responses (statement + status).",
     version="1.0.0",
 )
 
-
-# --- Registrasi router ---
+# --- Registrasi router CRUD ---
 app.include_router(readItem.router)
 app.include_router(createItem.router)
 app.include_router(updateItem.router)
 app.include_router(deleteItem.router)
 
+# --- Registrasi router ML (PREDIKSI TEKS) ---
+app.include_router(ml_router)
 
-# --- Root endpoint sederhana ---
+# --- Root endpoint ---
 @app.get("/")
 def root():
     return {"message": "Mental Health Sentiment API is running"}
