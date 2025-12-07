@@ -9,6 +9,7 @@ from modules.items.routes import (
     createItem,
     updateItem,
     deleteItem,
+    analytics
 )
 
 # === Tambahkan import ML router di sini ===
@@ -30,6 +31,7 @@ app.include_router(readItem.router)
 app.include_router(createItem.router)
 app.include_router(updateItem.router)
 app.include_router(deleteItem.router)
+app.include_router(analytics.router)
 
 # --- Registrasi router ML (PREDIKSI TEKS) ---
 app.include_router(ml_router)
