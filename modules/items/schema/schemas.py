@@ -3,25 +3,37 @@ from typing import Optional
 
 
 class MentalHealthBase(BaseModel):
+    # Input dasar: hanya statement pasien
     statement: str
-    status: str
 
 
 class MentalHealthCreate(MentalHealthBase):
-    """Dipakai di endpoint POST (insert data baru)."""
+    """
+    Dipakai di endpoint POST (insert data baru).
+    Admin hanya memasukkan 'statement', diagnosa awal akan diprediksi oleh ML.
+    """
     pass
 
 
 class MentalHealthUpdate(BaseModel):
-    """Dipakai di endpoint PUT/PATCH (update data)."""
+    """
+    Dipakai di endpoint PUT (update data oleh psikolog setelah konsultasi).
+    'status' di sini artinya status DIAGNOSA AKHIR.
+    """
     statement: Optional[str] = None
     status: Optional[str] = None
 
 
 class MentalHealthOut(BaseModel):
+    """
+    Output untuk semua endpoint CRUD:
+    - status_initial : hasil prediksi model ML dari 'statement'
+    - status_final   : nilai kolom 'status' di database (diagnosa akhir)
+    """
     id: int
-    clean_statement: str | None = None   # hanya ini
-    status: str
+    statement: str
+    status_initial: str
+    status_final: str
 
     class Config:
         orm_mode = True

@@ -6,12 +6,25 @@ from sqlalchemy.orm import Session
 from database import get_db
 from modules.items.schema.models import MentalHealthResponse
 from modules.items.schema.schemas import MentalHealthUpdate, MentalHealthOut
-from modules.items.scripts.cleaning import normalisasi  #tambah ini
+from modules.items.ml.services.predict_xgb import predict_text
 
 router = APIRouter(
     prefix="/mental-health",
     tags=["mental_health_update"],
 )
+
+
+def _to_out(obj: MentalHealthResponse) -> MentalHealthOut:
+    status_initial = predict_text(obj.statement)
+    status_final = obj.status
+
+    return MentalHealthOut(
+        id=obj.id,
+        statement=obj.statement,
+        status_initial=status_initial,
+        status_final=status_final,
+    )
+
 
 @router.put("/responses/{response_id}", response_model=MentalHealthOut)
 def update_response(
@@ -20,27 +33,31 @@ def update_response(
     db: Session = Depends(get_db),
 ):
     """
-    Memperbarui statement dan/atau status untuk id tertentu.
+    Memperbarui statement dan/atau status (diagnosa akhir) untuk id tertentu.
+
+    Sesuai flowchart:
+    - Dipakai setelah 'Konsultasi lebih lanjut dengan Psikolog'
+    - Psikolog meng-update kolom 'status' sebagai diagnosa akhir.
     """
     obj = (
         db.query(MentalHealthResponse)
         .filter(MentalHealthResponse.id == response_id)
         .first()
     )
+
     if not obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Response dengan id={response_id} tidak ditemukan.",
         )
 
-    #kalau statement diubah -> bersihkan lagi
     if payload.statement is not None:
         obj.statement = payload.statement
-        obj.clean_statement = normalisasi(payload.statement)
-
     if payload.status is not None:
+        # status di sini = DIAGNOSA AKHIR dari psikolog
         obj.status = payload.status
 
     db.commit()
     db.refresh(obj)
-    return obj
+
+    return _to_out(obj)
