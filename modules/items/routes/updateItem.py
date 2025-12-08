@@ -6,12 +6,12 @@ from sqlalchemy.orm import Session
 from database import get_db
 from modules.items.schema.models import MentalHealthResponse
 from modules.items.schema.schemas import MentalHealthUpdate, MentalHealthOut
+from modules.items.scripts.cleaning import normalisasi  #tambah ini
 
 router = APIRouter(
     prefix="/mental-health",
     tags=["mental_health_update"],
 )
-
 
 @router.put("/responses/{response_id}", response_model=MentalHealthOut)
 def update_response(
@@ -33,8 +33,11 @@ def update_response(
             detail=f"Response dengan id={response_id} tidak ditemukan.",
         )
 
+    #kalau statement diubah -> bersihkan lagi
     if payload.statement is not None:
         obj.statement = payload.statement
+        obj.clean_statement = normalisasi(payload.statement)
+
     if payload.status is not None:
         obj.status = payload.status
 
