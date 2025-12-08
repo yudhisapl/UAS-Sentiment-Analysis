@@ -37,6 +37,6 @@ app.include_router(analytics.router)
 app.include_router(ml_router)
 
 # --- Root endpoint ---
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
     return {"message": "Mental Health Sentiment API is running"}
