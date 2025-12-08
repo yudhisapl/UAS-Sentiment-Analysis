@@ -7,4 +7,5 @@ class MentalHealthResponse(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     statement = Column(Text, nullable=False)
+    clean_statement = Column(Text, nullable=True)
     status = Column(String(50), nullable=False, index=True)
